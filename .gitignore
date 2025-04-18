@@ -1,0 +1,38 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+terraform.tfstate*
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.env
+
+# Logs et fichiers temporaires
+*.log
+*.tmp
+*.temp
