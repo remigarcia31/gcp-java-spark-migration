@@ -37,3 +37,19 @@ resource "google_bigquery_dataset" "results_dataset" {
     project     = "aero-data-analysis"
   }
 }
+
+# table BigQuery pour l'état mis à jour des avions
+resource "google_bigquery_table" "aircraft_status_table" {
+  project    = var.project_id
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id   = "aircraft_status_updated"
+
+  # Définition explicite du schéma de la table
+  schema = jsonencode([
+    { "name" : "aircraft_id", "type" : "STRING", "mode" : "REQUIRED"},
+    { "name" : "model", "type" : "STRING", "mode" : "NULLABLE"},
+    { "name" : "updated_total_flight_hours", "type" : "FLOAT", "mode" : "NULLABLE"}
+  ])
+
+  deletion_protection = false # Permet la suppression via Terraform pour le dev/test
+}
