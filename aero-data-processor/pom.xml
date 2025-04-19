@@ -28,14 +28,43 @@
             <artifactId>spark-sql_2.12</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
-        </dependency>
+    </dependency>
 
-        <dependency>
-            <groupId>com.google.cloud.spark</groupId>
-            <artifactId>spark-bigquery-with-dependencies_2.12</artifactId>
-            <version>0.42.1</version>
-            <scope>provided</scope>
-        </dependency>
+    <dependency>
+        <groupId>com.google.cloud.spark</groupId>
+        <artifactId>spark-bigquery-with-dependencies_2.12</artifactId>
+        <version>0.42.1</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.9.2</version> <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>5.9.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>3.24.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>RELEASE</version>
+        <scope>test</scope>
+    </dependency>
+    <!--    Pour pouvoir créer une `SparkSession` locale dans notre test JUnit et utiliser les API Spark,
+            on doit rendre les JARs Spark disponibles lors de l'exécution du test.
+            Il faut commenter ou supprimer temporairement les <scope>provided</scope> des dépendances
+            `spark-core_2.12` et `spark-sql_2.12` pendant les tests.
+            Ne pas oublier de les remettre avant de builder le JAR pour Dataproc !-->
 
     </dependencies>
 

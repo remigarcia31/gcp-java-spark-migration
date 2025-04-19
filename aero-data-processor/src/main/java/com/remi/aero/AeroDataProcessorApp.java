@@ -119,7 +119,7 @@ public class AeroDataProcessorApp {
     /**
      * Jointure des df et calcule le statut mis à jour des avions
      */
-    private static Dataset<Row> calculateUpdatedAircraftStatus(Dataset<Row> aircraftDF, Dataset<Row> recentHoursDF) {
+     static Dataset<Row> calculateUpdatedAircraftStatus(Dataset<Row> aircraftDF, Dataset<Row> recentHoursDF) {
         log.info("Calcul du nouveau total d'heures de vol...");
         Dataset<Row> updatedStatus = aircraftDF
                 .join(recentHoursDF, aircraftDF.col("aircraft_id").equalTo(recentHoursDF.col("aircraft_id")), "left_outer")
