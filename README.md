@@ -1,22 +1,22 @@
-# Projet : Pipeline de Données GCP Java/Spark (Simulation Maintenance Aéronautique)
+# Projet : Pipeline de Données GCP Java/Spark (Simulation Migration Oracle/PLSQL vers GCP)
 
 ## 1. Introduction et Objectif
 
-Ce projet met en œuvre un pipeline de données Big Data sur Google Cloud Platform (GCP) en utilisant Java et Apache Spark. Son objectif principal est de simuler un cas d'usage pertinent pour l'optimisation de la maintenance dans le secteur aéronautique : la **mise à jour des heures de vol totales des aéronefs** en fonction des vols récents. Ce projet a été inspiré par une offre de mission pour un rôle de Data Engineer / Tech Lead.
+Ce projet met en œuvre un pipeline de données Big Data sur Google Cloud Platform (GCP) en utilisant Java et Apache Spark. Son objectif principal est de simuler un cas d'usage pertinent pour l'optimisation de la maintenance dans le secteur aéronautique : la mise à jour des heures de vol totales des aéronefs. Ce projet a été inspiré par une offre de mission pour un rôle de Data Engineer / Tech Lead et s'inscrit dans le contexte d'une **simulation de migration d'une application et de ses données depuis une base Oracle historique contenant potentiellement de la logique métier en PL/SQL.**
 
 Il sert également de démonstration pratique des compétences en traitement de données distribuées (Spark), gestion d'infrastructure cloud (GCP, Terraform), et bonnes pratiques de développement (Java, Maven, Git, Tests Unitaires de base).
 
-Enfin, ce projet est conçu comme une **simulation de migration** vers le cloud, représentant l'état cible d'une architecture de données moderne sur GCP, en remplacement d'un système hérité (hypothétique).
+Enfin, ce projet est conçu comme une **simulation de migration** vers le cloud, représentant l'état cible d'une architecture de données moderne sur GCP, **en remplacement d'un système hérité basé sur Oracle/PLSQL (hypothétique).**
 
 ## 2. Architecture
 
 Le pipeline suit le flux de données suivant :
 
-1.  **Données Sources :** Deux fichiers CSV sont utilisés : l'un représentant l'état initial des avions (`aircraft_initial_state.csv`), l'autre les vols récents (`recent_flights.csv`). Ils sont stockés localement ou proviennent d'un système externe.
+1.  **Données Sources :** Deux fichiers CSV (ex: CSV **représentant des extraits de tables Oracle** comme `AIRCRAFTS` et `FLIGHT_LOGS`) sont utilisés. Ils sont stockés localement ou proviennent d'un système externe.
 2.  **Ingestion (Simulation) :** Les données sources sont uploadées manuellement (via `gsutil`) vers un bucket **Google Cloud Storage (GCS)** servant de zone de stockage brute ("Raw Zone").
 3.  **Traitement :** Une application **Java/Spark** (packagée en JAR) est exécutée sur **Dataproc Serverless**.
     * L'application lit les deux fichiers CSV depuis GCS en appliquant des schémas prédéfinis.
-    * Elle joint les informations, agrège les heures de vol récentes par avion, et calcule le nouveau total d'heures de vol.
+    * Elle effectue des transformations et des enrichissements en utilisant l'API Spark SQL / DataFrame, **réimplémentant ainsi la logique métier potentiellement issue de procédures PL/SQL de la base source.**
     * Le JAR de l'application est également stocké sur GCS.
 4.  **Stockage des Résultats :** L'état mis à jour des avions (avec les nouvelles heures de vol) est écrit dans une table **BigQuery** dédiée, servant de Data Warehouse pour l'analyse.
 5.  **Infrastructure :** Les ressources GCP nécessaires (Bucket GCS, Dataset BigQuery, Table BigQuery avec schéma) sont définies et gérées via **Terraform** (Infrastructure as Code).
@@ -81,8 +81,8 @@ graph LR
 Le projet est organisé comme suit :
 
 * `/` : Racine (README.md, .gitignore, fichiers CSV exemples)
-    * `aircraft_initial_state.csv` : Données initiales exemple.
-    * `recent_flights.csv` : Vols récents exemple.
+    * `aircraft_initial_state.csv` : Données initiales exemple (simule extrait table Oracle).
+    * `recent_flights.csv` : Vols récents exemple (simule extrait table Oracle).
 * `aero-data-processor/` : Module Maven pour l'application Java/Spark (`pom.xml`, `src/main/java`, `src/main/resources`, `src/test/java`).
     * `src/main/java/com/remi/aero/AeroDataProcessorApp.java`: Code principal du pipeline.
     * `src/test/java/com/remi/aero/AeroDataProcessorAppTest.java`: Tests unitaires JUnit.
@@ -181,13 +181,13 @@ Pour exécuter ce projet, vous aurez besoin de :
     * Consultez les logs du driver.
     * Vérifiez le contenu de la table `aircraft_status_updated` dans votre dataset BigQuery.
 
-## 8. Aspect "Simulation de Migration"
+## 8. Aspect "Simulation de Migration" (Oracle/PLSQL vers GCP/Spark)
 
-Ce projet illustre plusieurs facettes d'une migration vers GCP :
+Ce projet illustre plusieurs facettes d'une migration depuis un système Oracle/PLSQL vers GCP :
 
-* **Infrastructure Cible via IaC :** Utilisation de Terraform pour créer l'environnement GCP (GCS, BQ Dataset + Table).
-* **Transfert de Données (Simulé) :** Upload des CSV vers GCS.
-* **Adaptation du Traitement :** Code Spark/Java conçu pour l'écosystème cloud (Dataproc, connecteurs GCS/BQ), lisant et écrivant sur les services managés.
+* **Infrastructure Cible via IaC :** Utilisation de Terraform pour créer l'environnement GCP (GCS, BQ Dataset + Table) de manière reproductible.
+* **Transfert de Données (Simulé) :** L'upload des fichiers CSV (représentant des **extraits de tables Oracle**) vers GCS simule la phase 'Extract & Load' d'une migration de données depuis Oracle.
+* **Migration de la Logique (Simulée) :** Le code Spark/Java **réimplémente la logique métier** (ici, le calcul des heures de vol mises à jour) qui aurait pu résider dans des **procédures stockées PL/SQL** de la base Oracle source. Cela démontre le déplacement de la logique applicative vers une plateforme de traitement distribuée et scalable (Spark/Dataproc), une étape clé des migrations complexes.
 
 ## 9. Améliorations Possibles
 
