@@ -35,13 +35,13 @@ public class AeroDataProcessorApp {
     }
 
     // Définition des Schémas
-    private static final StructType AIRCRAFT_SCHEMA = new StructType(new StructField[]{
+    static final StructType AIRCRAFT_SCHEMA = new StructType(new StructField[]{
             DataTypes.createStructField("aircraft_id", DataTypes.StringType, false),
             DataTypes.createStructField("model", DataTypes.StringType, true),
             DataTypes.createStructField("initial_total_flight_hours", DataTypes.DoubleType, true)
     });
 
-    private static final StructType FLIGHTS_SCHEMA = new StructType(new StructField[]{
+    static final StructType FLIGHTS_SCHEMA = new StructType(new StructField[]{
             DataTypes.createStructField("flight_id", DataTypes.StringType, false),
             DataTypes.createStructField("aircraft_id", DataTypes.StringType, false),
             DataTypes.createStructField("flight_date", DataTypes.StringType, true),
@@ -106,7 +106,7 @@ public class AeroDataProcessorApp {
     /**
      * Calcule le total des heures de vol récentes par avion.
      */
-    private static Dataset<Row> calculateRecentHours(Dataset<Row> flightsDF) {
+     static Dataset<Row> calculateRecentHours(Dataset<Row> flightsDF) {
         log.info("Calcul des heures de vol récentes par avion...");
         Dataset<Row> recentHours = flightsDF
                 .groupBy("aircraft_id")
