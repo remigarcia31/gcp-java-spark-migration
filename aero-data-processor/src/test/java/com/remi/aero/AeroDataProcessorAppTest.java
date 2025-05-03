@@ -29,7 +29,7 @@ class AeroDataProcessorAppTest {
         // Crée une session Spark locale pour les tests
         spark = SparkSession.builder()
                 .appName("AeroApp Unit Test")
-                .master("local[2]") // Utilise 2 cœurs locaux
+                .master("local[2]") // Utilise 2 coeurs locaux
                 .config("spark.sql.shuffle.partitions", "1") // Réduit le shuffle pour les tests locaux
                 .getOrCreate();
     }
