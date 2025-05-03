@@ -26,41 +26,66 @@ Le pipeline suit le flux de données suivant :
 graph LR
     subgraph "Machine Locale / Développeur"
         A["Code Source Java/Spark<br/>(aero-data-processor/src)"] --> B{"Maven Build<br/>(mvn package)"};
-        B --> C["Application<br/>aero-data-processor.jar<br/>(target/)"] --> D{"Upload JAR<br/>(gsutil cp)"};
+        B --> C["Application .jar<br/>(target/)"] --> D{"Upload JAR<br/>(gsutil cp)"};
         E["Données Sources<br/>(aircraft_*.csv, recent_*.csv)"] --> F{"Upload Data<br/>(gsutil cp)"};
         G["Code Terraform<br/>(terraform/*.tf)"] --> H{"Gestion Infra<br/>(terraform apply)"};
-        I["Lancement Job<br/>(gcloud batches submit -- args...)"];
+        I["Lancement Job Spark<br/>(gcloud batches submit)"];
+        CF_CODE["Code Cloud Function<br/>(cloud_function_src/)"] -- Zip --> ZIP_UPLOAD{"Upload CF Zip<br/>(via Terraform/GCS)"};
         J["Dépôt Git"];
-        A --> J;
-        G --> J;
+        A & G & CF_CODE --> J;
     end
 
     subgraph "Google Cloud Platform (GCP)"
-        K["Bucket GCS<br/>Zone 'Raw Data'<br/>(Aircraft & Flights CSVs)<br/><i>[Terraform Managed]</i>"];
-        L["Bucket GCS<br/>Zone 'Artefacts'<br/>(ex: .../jars/)"];
-        M["Batch Dataproc Serverless<br/>Exécute Spark avec Java<br/>(Join + Aggregation)"];
-        N["Dataset BigQuery<br/>Zone 'Processed'<br/>(ex: aero_data_processing)<br/><i>[Terraform Managed]</i>"];
-        O["Table BigQuery<br/>(ex: aircraft_status_updated)<br/><i>[Terraform Managed]</i>"];
+        %% Infrastructure Nodes %%
+        GCS_RAW["Bucket GCS (Raw Data)<br/><i>[Terraform Managed]</i>"];
+        GCS_JAR["Bucket GCS (JARs)<br/><i>[Implied or same as Raw]</i>"];
+        GCS_MARKER["Bucket GCS (Processed/_SUCCESS)<br/><i>[Terraform Managed]</i>"];
+        DP_BATCH["Batch Dataproc Serverless<br/>Exécute Spark/Java"];
+        BQ_DS["Dataset BigQuery<br/><i>[Terraform Managed]</i>"];
+        BQ_TABLE["Table BigQuery<br/>(aircraft_status_updated)<br/><i>[Terraform Managed]</i>"];
+        CF_SA["SA Fonction<br/><i>[Terraform Managed]</i>"];
+        CF_FUNC["Cloud Function (Python)<br/><i>[Terraform Managed]</i>"];
+        EVENT_TRIG["Eventarc Trigger (GCS)<br/><i>[Terraform Managed]</i>"];
+        PUBSUB_TOPIC["Topic Pub/Sub (Notifications)<br/><i>[Terraform Managed]</i>"];
+        CF_ZIP_GCS["Code Source .zip<br/>(Stocké sur GCS)"];
 
-        F --> K;
-        D --> L;
-        H ==> K;
-        H ==> N;
-        H ==> O;
+        %% Terraform Management Links %%
+        H ==> GCS_RAW;
+        H ==> GCS_MARKER;
+        H ==> BQ_DS;
+        H ==> BQ_TABLE;
+        H ==> CF_SA;
+        H ==> CF_FUNC;
+        H ==> EVENT_TRIG;
+        H ==> PUBSUB_TOPIC;
+        H ==> GCS_JAR;
 
-        I --> M;
-        L -- "JAR" --> M;
-        K -- "Aircraft Data (CSV)" --> M;
-        K -- "Flights Data (CSV)" --> M; 
-        M -- "Updated Aircraft Status" --> O;
-        N -- "Contient" --> O;
+        %% Data & Execution Flow %%
+        F --> GCS_RAW;
+        D --> GCS_JAR;
+        I --> DP_BATCH;
+        GCS_JAR -- "JAR" --> DP_BATCH;
+        GCS_RAW -- "Input Data (CSVs)" --> DP_BATCH;
+        DP_BATCH -- "Write Results" --> BQ_TABLE;
+        DP_BATCH -- "Write _SUCCESS file" --> GCS_MARKER;
+        ZIP_UPLOAD --> CF_ZIP_GCS -- "Source Code" --> CF_FUNC;
+
+        %% Event Flow (Déclenchement découplé) %%
+        GCS_MARKER -- "1. Event: _SUCCESS créé" --> EVENT_TRIG;
+        EVENT_TRIG -- "2. Déclenche Fonction" --> CF_FUNC;
+        CF_FUNC -- "3. Publie Notification" --> PUBSUB_TOPIC;
     end
 
-    style K fill:#f9f,stroke:#333,stroke-width:2px
-    style L fill:#f9f,stroke:#333,stroke-width:2px
-    style N fill:#ccf,stroke:#333,stroke-width:2px
-    style O fill:#ccf,stroke:#333,stroke-width:1px
-    style M fill:#cfc,stroke:#333,stroke-width:2px
+    %% Styling (Optionnel) %%
+    style GCS_RAW fill:#f9f,stroke:#333,stroke-width:2px
+    style GCS_JAR fill:#f9f,stroke:#333,stroke-width:1px
+    style GCS_MARKER fill:#f9f,stroke:#333,stroke-width:2px
+    style BQ_DS fill:#ccf,stroke:#333,stroke-width:2px
+    style BQ_TABLE fill:#ccf,stroke:#333,stroke-width:1px
+    style DP_BATCH fill:#cfc,stroke:#333,stroke-width:2px
+    style CF_FUNC fill:#ffc,stroke:#333,stroke-width:2px
+    style EVENT_TRIG fill:#ffc,stroke:#333,stroke-width:1px
+    style PUBSUB_TOPIC fill:#fcf,stroke:#333,stroke-width:2px
 ```
 
 ## 3. Stack Technique
