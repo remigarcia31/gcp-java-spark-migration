@@ -8,6 +8,6 @@ terraform {
 }
 
 provider "google" {
-  project = "gcp-java-spark-migration"
+  project = var.project_id
   region  = var.region
 }
